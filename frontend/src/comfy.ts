@@ -185,6 +185,15 @@ export class ComfyClient {
     return images;
   }
 
+  async getOutputImagesForNode(promptId: string, nodeId: string): Promise<OutputImage[]> {
+    const res = await fetch(`${this.baseUrl}/history/${promptId}`);
+    if (!res.ok) throw new Error(`history failed: ${res.status}`);
+    const all = (await res.json()) as Record<string, HistoryEntry>;
+    const entry = all[promptId];
+    if (!entry) return [];
+    return entry.outputs?.[nodeId]?.images ?? [];
+  }
+
   viewUrl(image: OutputImage): string {
     const u = new URL(`${this.baseUrl}/view`);
     u.searchParams.set("filename", image.filename);

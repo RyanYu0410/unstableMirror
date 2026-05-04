@@ -124,9 +124,9 @@ async function runOnce(): Promise<void> {
     await client.awaitCompletion(promptId);
 
     setStatus("loading result", "busy");
-    const outputs = await client.getOutputs(promptId);
+    const outputs = await client.getOutputImagesForNode(promptId, "31");
     const first = outputs[0];
-    if (!first) throw new Error("no output image returned");
+    if (!first) throw new Error('no final image returned from SaveImage node "31"');
 
     await renderResult(client.viewUrl(first));
     const elapsed = ((performance.now() - started) / 1000).toFixed(1);
