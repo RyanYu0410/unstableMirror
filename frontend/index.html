@@ -7,17 +7,20 @@
     <link rel="stylesheet" href="/src/style.css" />
   </head>
   <body>
-    <header>
+    <header class="chrome topbar">
       <h1>unstable mirror</h1>
       <div class="status" id="status">idle</div>
     </header>
 
-    <main>
-      <section class="pane camera">
-        <h2>capture</h2>
+    <main class="mirror-stage">
+      <section class="mirror-frame" aria-label="mirror">
         <video id="video" autoplay playsinline muted></video>
+        <img id="result" alt="generated portrait" hidden />
         <canvas id="canvas" hidden></canvas>
-        <div class="controls">
+
+        <div class="mirror-vignette" aria-hidden="true"></div>
+
+        <div class="chrome controls">
           <button id="start-camera">start camera</button>
           <button id="capture" disabled>capture &amp; generate</button>
           <label class="toggle">
@@ -25,19 +28,15 @@
             <span>loop</span>
           </label>
         </div>
-      </section>
 
-      <section class="pane result">
-        <h2>result</h2>
-        <img id="result" alt="generated portrait" />
-        <div class="meta">
+        <div class="chrome meta">
           <span id="progress"></span>
           <span id="latency"></span>
         </div>
       </section>
     </main>
 
-    <details class="settings">
+    <details class="chrome settings">
       <summary>settings</summary>
       <label>
         ComfyUI base URL

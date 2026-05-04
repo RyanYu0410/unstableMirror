@@ -63,7 +63,13 @@ saveSettingsBtn.addEventListener("click", () => {
 
 startBtn.addEventListener("click", async () => {
   try {
-    stream = await navigator.mediaDevices.getUserMedia({
+    const mediaDevices = navigator.mediaDevices;
+    if (!mediaDevices?.getUserMedia) {
+      setStatus(cameraUnavailableMessage(), "error");
+      return;
+    }
+
+    stream = await mediaDevices.getUserMedia({
       video: { width: { ideal: 1280 }, height: { ideal: 1920 }, facingMode: "user" },
       audio: false,
     });
@@ -76,6 +82,13 @@ startBtn.addEventListener("click", async () => {
     setStatus(`camera error: ${describe(err)}`, "error");
   }
 });
+
+function cameraUnavailableMessage(): string {
+  if (!window.isSecureContext) {
+    return "camera unavailable: open http://localhost:5173 on this MacBook, or serve the page over HTTPS";
+  }
+  return "camera unavailable: this browser does not expose getUserMedia";
+}
 
 captureBtn.addEventListener("click", () => {
   void runOnce();
@@ -183,6 +196,7 @@ async function renderResult(url: string): Promise<void> {
   if (lastObjectUrl) URL.revokeObjectURL(lastObjectUrl);
   lastObjectUrl = URL.createObjectURL(blob);
   result.src = lastObjectUrl;
+  result.hidden = false;
 }
 
 function setStatus(text: string, kind: "idle" | "busy" | "error"): void {

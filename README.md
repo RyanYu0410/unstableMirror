@@ -47,18 +47,19 @@ Place these in the standard ComfyUI model folders:
 
 ### 3. Launch ComfyUI with CORS enabled and bound to the LAN
 
-Replace `192.168.x.y` with the MacBook's LAN address (the browser origin):
+For the normal MacBook workflow, open the front-end at `http://localhost:5173` so
+the browser exposes webcam access. That makes the browser origin `http://localhost:5173`:
 
 ```bash
 cd /path/to/ComfyUI
 python main.py \
   --listen 0.0.0.0 \
   --port 8188 \
-  --enable-cors-header "http://192.168.x.y:5173"
+  --enable-cors-header "http://localhost:5173"
 ```
 
 - `--listen 0.0.0.0` makes ComfyUI reachable from the MacBook.
-- `--enable-cors-header <origin>` is required so the browser is allowed to call `/upload/image`, `/prompt`, `/view`, and the `/ws` WebSocket cross-origin. Some ComfyUI versions accept `*` here; pinning to the MacBook origin is safer.
+- `--enable-cors-header <origin>` is required so the browser is allowed to call `/upload/image`, `/prompt`, `/view`, and the `/ws` WebSocket cross-origin. Some ComfyUI versions accept `*` here; pinning to the browser origin is safer. If you serve the front-end over HTTPS or open it from another device, use that exact page origin instead.
 - macOS will likely prompt to allow incoming connections the first time — accept.
 
 ### 4. Confirm reachability from the MacBook
@@ -81,7 +82,9 @@ npm install
 npm run dev -- --host
 ```
 
-Vite will print a LAN URL like `http://192.168.x.y:5173`. Open that on the MacBook.
+Open `http://localhost:5173` on the MacBook. Browsers only expose webcam APIs to
+secure contexts; `localhost` is treated as secure, but a plain `http://192.168.x.y:5173`
+LAN URL is not.
 
 In the page:
 
