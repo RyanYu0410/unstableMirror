@@ -1,0 +1,133 @@
+{
+  "3": {
+    "class_type": "LoraLoaderModelOnly",
+    "inputs": {
+      "model": ["25", 0],
+      "lora_name": "ZFCWBK4A0E4E052C66J5CY6T20.safetensors",
+      "strength_model": 0.56
+    }
+  },
+  "18": {
+    "class_type": "AILab_Preview",
+    "inputs": {
+      "image": ["33", 0],
+      "mask": ["33", 1]
+    }
+  },
+  "19": {
+    "class_type": "LoadImage",
+    "inputs": {
+      "image": "input.png"
+    }
+  },
+  "22": {
+    "class_type": "IPAdapterAdvanced",
+    "inputs": {
+      "model": ["24", 0],
+      "ipadapter": ["24", 1],
+      "image": ["18", 0],
+      "weight": 0.95,
+      "weight_type": "linear",
+      "combine_embeds": "concat",
+      "start_at": 0,
+      "end_at": 1,
+      "embeds_scaling": "V only"
+    }
+  },
+  "24": {
+    "class_type": "IPAdapterUnifiedLoaderFaceID",
+    "inputs": {
+      "model": ["3", 0],
+      "preset": "FACEID PLUS V2",
+      "lora_strength": 0.6,
+      "provider": "CoreML"
+    }
+  },
+  "25": {
+    "class_type": "CheckpointLoaderSimple",
+    "inputs": {
+      "ckpt_name": "v1-5-pruned-emaonly.safetensors"
+    }
+  },
+  "26": {
+    "class_type": "CLIPTextEncode",
+    "inputs": {
+      "clip": ["25", 1],
+      "text": "portrait shot, is transforming into a really dense mass of flowers, mushrooms, translucent mushrooms, face partially dissolving into petals and fungi, skin turning into botanical matter, skin turning into botanical matter, human flesh fused with dried flowers and transparent layers, reconstructed from organic material, flowers growing through the body, the figure and the floral matter merged into one organism, no separation between person and flowers, surreal metamorphosis, haunting beauty, cinematic lighting, rich shadows, ultra detailed, realistic skin texture, masterpiece"
+    }
+  },
+  "27": {
+    "class_type": "CLIPTextEncode",
+    "inputs": {
+      "clip": ["25", 1],
+      "text": "cartoon, anime, flat lighting, messy composition, text, watermark, logo, frame, jpeg artifacts, noisy skin, plastic skin, ugly, mutated, cropped head, multiple people, nude"
+    }
+  },
+  "28": {
+    "class_type": "EmptyLatentImage",
+    "inputs": {
+      "width": 512,
+      "height": 768,
+      "batch_size": 1
+    }
+  },
+  "29": {
+    "class_type": "KSampler",
+    "inputs": {
+      "model": ["22", 0],
+      "positive": ["26", 0],
+      "negative": ["27", 0],
+      "latent_image": ["28", 0],
+      "seed": 0,
+      "steps": 35,
+      "cfg": 6.5,
+      "sampler_name": "ddpm",
+      "scheduler": "normal",
+      "denoise": 1
+    }
+  },
+  "30": {
+    "class_type": "VAEDecode",
+    "inputs": {
+      "samples": ["29", 0],
+      "vae": ["25", 2]
+    }
+  },
+  "31": {
+    "class_type": "SaveImage",
+    "inputs": {
+      "images": ["30", 0],
+      "filename_prefix": "IPAdapter"
+    }
+  },
+  "33": {
+    "class_type": "ClothesSegment",
+    "inputs": {
+      "images": ["19", 0],
+      "Hat": true,
+      "Hair": true,
+      "Sunglasses": true,
+      "Upper-clothes": true,
+      "Skirt": true,
+      "Pants": true,
+      "Dress": true,
+      "Belt": true,
+      "Left-shoe": true,
+      "Right-shoe": true,
+      "Face": true,
+      "Left-leg": true,
+      "Right-leg": true,
+      "Left-arm": true,
+      "Right-arm": true,
+      "Bag": true,
+      "Scarf": true,
+      "Background": false,
+      "process_res": 512,
+      "mask_blur": 4,
+      "mask_offset": 0,
+      "invert_output": false,
+      "background": "Alpha",
+      "background_color": "#222222"
+    }
+  }
+}

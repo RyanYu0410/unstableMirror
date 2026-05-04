@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>unstable mirror</title>
+    <link rel="stylesheet" href="/src/style.css" />
+  </head>
+  <body>
+    <header>
+      <h1>unstable mirror</h1>
+      <div class="status" id="status">idle</div>
+    </header>
+
+    <main>
+      <section class="pane camera">
+        <h2>capture</h2>
+        <video id="video" autoplay playsinline muted></video>
+        <canvas id="canvas" hidden></canvas>
+        <div class="controls">
+          <button id="start-camera">start camera</button>
+          <button id="capture" disabled>capture &amp; generate</button>
+          <label class="toggle">
+            <input type="checkbox" id="loop" />
+            <span>loop</span>
+          </label>
+        </div>
+      </section>
+
+      <section class="pane result">
+        <h2>result</h2>
+        <img id="result" alt="generated portrait" />
+        <div class="meta">
+          <span id="progress"></span>
+          <span id="latency"></span>
+        </div>
+      </section>
+    </main>
+
+    <details class="settings">
+      <summary>settings</summary>
+      <label>
+        ComfyUI base URL
+        <input id="base-url" type="text" placeholder="http://studio.local:8188" />
+      </label>
+      <button id="save-settings">save</button>
+    </details>
+
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>

@@ -1,0 +1,811 @@
+{
+  "id": "96777325-c8b4-426a-80b8-ff1d406d8e3d",
+  "revision": 0,
+  "last_node_id": 33,
+  "last_link_id": 55,
+  "nodes": [
+    {
+      "id": 3,
+      "type": "LoraLoaderModelOnly",
+      "pos": [
+        532.128388490075,
+        2762.458708985193
+      ],
+      "size": [
+        270,
+        114.65625
+      ],
+      "flags": {},
+      "order": 4,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "model",
+          "type": "MODEL",
+          "link": 39
+        }
+      ],
+      "outputs": [
+        {
+          "name": "MODEL",
+          "type": "MODEL",
+          "links": [
+            40
+          ]
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "LoraLoaderModelOnly"
+      },
+      "widgets_values": [
+        "ZFCWBK4A0E4E052C66J5CY6T20.safetensors",
+        0.56
+      ]
+    },
+    {
+      "id": 18,
+      "type": "AILab_Preview",
+      "pos": [
+        1392.8875910248705,
+        1265.1414475018028
+      ],
+      "size": [
+        425.15625,
+        458.65625
+      ],
+      "flags": {},
+      "order": 7,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "image",
+          "shape": 7,
+          "type": "IMAGE",
+          "link": 53
+        },
+        {
+          "name": "mask",
+          "shape": 7,
+          "type": "MASK",
+          "link": 55
+        }
+      ],
+      "outputs": [
+        {
+          "name": "IMAGE",
+          "type": "IMAGE",
+          "links": [
+            48
+          ]
+        },
+        {
+          "name": "MASK",
+          "type": "MASK",
+          "links": []
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "AILab_Preview",
+        "cnr_id": "comfyui-rmbg",
+        "ver": "112fd6141d07663d5e4a35d66d269542b58f4438",
+        "ue_properties": {
+          "widget_ue_connectable": {},
+          "version": "7.5.2",
+          "input_ue_unconnectable": {}
+        }
+      },
+      "widgets_values": [],
+      "color": "#2e3e57",
+      "bgcolor": "#4b5b73"
+    },
+    {
+      "id": 19,
+      "type": "AILab_LoadImage",
+      "pos": [
+        -490.15453639875864,
+        787.1998919312484
+      ],
+      "size": [
+        640,
+        1020
+      ],
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "IMAGE",
+          "type": "IMAGE",
+          "links": [
+            52
+          ]
+        },
+        {
+          "name": "MASK",
+          "type": "MASK",
+          "links": null
+        },
+        {
+          "name": "WIDTH",
+          "type": "INT",
+          "links": null
+        },
+        {
+          "name": "HEIGHT",
+          "type": "INT",
+          "links": null
+        },
+        {
+          "name": "HEIGHT",
+          "type": "INT",
+          "links": null
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "AILab_LoadImage",
+        "enableTabs": false,
+        "tabWidth": 65,
+        "tabXOffset": 10,
+        "hasSecondTab": false,
+        "secondTabText": "Send Back",
+        "secondTabOffset": 80,
+        "secondTabWidth": 65,
+        "cnr_id": "comfyui-rmbg",
+        "ver": "4faa7c7c12147db95345ee78b30f38273443ff99"
+      },
+      "widgets_values": [
+        "",
+        "0b65e688-10db-432b-9c13-a24a848327b2.png",
+        "lanczos",
+        0,
+        1,
+        "longest_side",
+        0,
+        "image"
+      ],
+      "color": "#2e3e57",
+      "bgcolor": "#4b5b73"
+    },
+    {
+      "id": 22,
+      "type": "IPAdapterAdvanced",
+      "pos": [
+        1686.505416608388,
+        2124.9297062486626
+      ],
+      "size": [
+        270,
+        391.984375
+      ],
+      "flags": {},
+      "order": 9,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "model",
+          "type": "MODEL",
+          "link": 26
+        },
+        {
+          "name": "ipadapter",
+          "type": "IPADAPTER",
+          "link": 27
+        },
+        {
+          "name": "image",
+          "type": "IMAGE",
+          "link": 48
+        },
+        {
+          "name": "image_negative",
+          "shape": 7,
+          "type": "IMAGE",
+          "link": null
+        },
+        {
+          "name": "attn_mask",
+          "shape": 7,
+          "type": "MASK",
+          "link": null
+        },
+        {
+          "name": "clip_vision",
+          "shape": 7,
+          "type": "CLIP_VISION",
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "name": "MODEL",
+          "type": "MODEL",
+          "links": [
+            32
+          ]
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "IPAdapterAdvanced"
+      },
+      "widgets_values": [
+        0.95,
+        "linear",
+        "concat",
+        0,
+        1,
+        "V only"
+      ]
+    },
+    {
+      "id": 24,
+      "type": "IPAdapterUnifiedLoaderFaceID",
+      "pos": [
+        1226.5053014955488,
+        2424.9296950132593
+      ],
+      "size": [
+        315,
+        197.328125
+      ],
+      "flags": {},
+      "order": 8,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "model",
+          "type": "MODEL",
+          "link": 40
+        },
+        {
+          "name": "ipadapter",
+          "shape": 7,
+          "type": "IPADAPTER",
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "name": "MODEL",
+          "type": "MODEL",
+          "slot_index": 0,
+          "links": [
+            26
+          ]
+        },
+        {
+          "name": "ipadapter",
+          "type": "IPADAPTER",
+          "links": [
+            27
+          ]
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "IPAdapterUnifiedLoaderFaceID"
+      },
+      "widgets_values": [
+        "FACEID PLUS V2",
+        0.6,
+        "CoreML"
+      ]
+    },
+    {
+      "id": 25,
+      "type": "CheckpointLoaderSimple",
+      "pos": [
+        -158.20755371375992,
+        2978.2450445129275
+      ],
+      "size": [
+        315,
+        130.65625
+      ],
+      "flags": {},
+      "order": 1,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "MODEL",
+          "type": "MODEL",
+          "slot_index": 0,
+          "links": [
+            39
+          ]
+        },
+        {
+          "name": "CLIP",
+          "type": "CLIP",
+          "slot_index": 1,
+          "links": [
+            30,
+            31
+          ]
+        },
+        {
+          "name": "VAE",
+          "type": "VAE",
+          "slot_index": 2,
+          "links": [
+            37
+          ]
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "CheckpointLoaderSimple"
+      },
+      "widgets_values": [
+        "v1-5-pruned-emaonly.safetensors"
+      ]
+    },
+    {
+      "id": 26,
+      "type": "CLIPTextEncode",
+      "pos": [
+        1146.5054056057138,
+        2794.9291688946028
+      ],
+      "size": [
+        422.84375,
+        164.3125
+      ],
+      "flags": {},
+      "order": 5,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "clip",
+          "type": "CLIP",
+          "link": 30
+        }
+      ],
+      "outputs": [
+        {
+          "name": "CONDITIONING",
+          "type": "CONDITIONING",
+          "slot_index": 0,
+          "links": [
+            33
+          ]
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "CLIPTextEncode"
+      },
+      "widgets_values": [
+        "portrait shot, is transforming into a really dense mass of flowers, mushrooms, translucent mushrooms, face partially dissolving into petals and fungi, skin turning into botanical matter, skin turning into botanical matter, human flesh fused with dried flowers and transparent layers, reconstructed from organic material, flowers growing through the body, the figure and the floral matter merged into one organism, no separation between person and flowers, surreal metamorphosis, haunting beauty, cinematic lighting, rich shadows, ultra detailed, realistic skin texture, masterpiece"
+      ]
+    },
+    {
+      "id": 27,
+      "type": "CLIPTextEncode",
+      "pos": [
+        1046.5054465251342,
+        3114.9291539362293
+      ],
+      "size": [
+        425.265625,
+        180.59375
+      ],
+      "flags": {},
+      "order": 6,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "clip",
+          "type": "CLIP",
+          "link": 31
+        }
+      ],
+      "outputs": [
+        {
+          "name": "CONDITIONING",
+          "type": "CONDITIONING",
+          "slot_index": 0,
+          "links": [
+            34
+          ]
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "CLIPTextEncode"
+      },
+      "widgets_values": [
+        "cartoon, anime, flat lighting, messy composition, text, watermark, logo, frame, jpeg artifacts, noisy skin, plastic skin, ugly, mutated, cropped head, multiple people, nude"
+      ]
+    },
+    {
+      "id": 28,
+      "type": "EmptyLatentImage",
+      "pos": [
+        1496.505440824315,
+        3304.9296650300194
+      ],
+      "size": [
+        315,
+        144
+      ],
+      "flags": {},
+      "order": 2,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "LATENT",
+          "type": "LATENT",
+          "slot_index": 0,
+          "links": [
+            35
+          ]
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "EmptyLatentImage"
+      },
+      "widgets_values": [
+        512,
+        768,
+        1
+      ]
+    },
+    {
+      "id": 29,
+      "type": "KSampler",
+      "pos": [
+        1906.5052195237201,
+        2914.9294142116423
+      ],
+      "size": [
+        315,
+        317.328125
+      ],
+      "flags": {},
+      "order": 10,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "model",
+          "type": "MODEL",
+          "link": 32
+        },
+        {
+          "name": "positive",
+          "type": "CONDITIONING",
+          "link": 33
+        },
+        {
+          "name": "negative",
+          "type": "CONDITIONING",
+          "link": 34
+        },
+        {
+          "name": "latent_image",
+          "type": "LATENT",
+          "link": 35
+        }
+      ],
+      "outputs": [
+        {
+          "name": "LATENT",
+          "type": "LATENT",
+          "slot_index": 0,
+          "links": [
+            36
+          ]
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "KSampler"
+      },
+      "widgets_values": [
+        0,
+        "fixed",
+        35,
+        6.5,
+        "ddpm",
+        "normal",
+        1
+      ]
+    },
+    {
+      "id": 30,
+      "type": "VAEDecode",
+      "pos": [
+        2266.5050186828353,
+        2914.9294142116423
+      ],
+      "size": [
+        225,
+        72
+      ],
+      "flags": {},
+      "order": 11,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "samples",
+          "type": "LATENT",
+          "link": 36
+        },
+        {
+          "name": "vae",
+          "type": "VAE",
+          "link": 37
+        }
+      ],
+      "outputs": [
+        {
+          "name": "IMAGE",
+          "type": "IMAGE",
+          "slot_index": 0,
+          "links": [
+            38
+          ]
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "VAEDecode"
+      },
+      "widgets_values": []
+    },
+    {
+      "id": 31,
+      "type": "SaveImage",
+      "pos": [
+        2636.505027873895,
+        2904.9293826162702
+      ],
+      "size": [
+        529.765625,
+        582.296875
+      ],
+      "flags": {},
+      "order": 12,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "images",
+          "type": "IMAGE",
+          "link": 38
+        }
+      ],
+      "outputs": [],
+      "properties": {
+        "Node name for S&R": "SaveImage"
+      },
+      "widgets_values": [
+        "IPAdapter"
+      ]
+    },
+    {
+      "id": 33,
+      "type": "ClothesSegment",
+      "pos": [
+        369.9226877084779,
+        1032.4721648453985
+      ],
+      "size": [
+        340,
+        812.65625
+      ],
+      "flags": {},
+      "order": 3,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "images",
+          "type": "IMAGE",
+          "link": 52
+        }
+      ],
+      "outputs": [
+        {
+          "name": "IMAGE",
+          "type": "IMAGE",
+          "links": [
+            53
+          ]
+        },
+        {
+          "name": "MASK",
+          "type": "MASK",
+          "links": [
+            55
+          ]
+        },
+        {
+          "name": "MASK_IMAGE",
+          "type": "IMAGE",
+          "links": null
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "ClothesSegment"
+      },
+      "widgets_values": [
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        false,
+        512,
+        4,
+        0,
+        false,
+        "Alpha",
+        "#222222"
+      ],
+      "color": "#222e40",
+      "bgcolor": "#364254"
+    }
+  ],
+  "links": [
+    [
+      26,
+      24,
+      0,
+      22,
+      0,
+      "MODEL"
+    ],
+    [
+      27,
+      24,
+      1,
+      22,
+      1,
+      "IPADAPTER"
+    ],
+    [
+      30,
+      25,
+      1,
+      26,
+      0,
+      "CLIP"
+    ],
+    [
+      31,
+      25,
+      1,
+      27,
+      0,
+      "CLIP"
+    ],
+    [
+      32,
+      22,
+      0,
+      29,
+      0,
+      "MODEL"
+    ],
+    [
+      33,
+      26,
+      0,
+      29,
+      1,
+      "CONDITIONING"
+    ],
+    [
+      34,
+      27,
+      0,
+      29,
+      2,
+      "CONDITIONING"
+    ],
+    [
+      35,
+      28,
+      0,
+      29,
+      3,
+      "LATENT"
+    ],
+    [
+      36,
+      29,
+      0,
+      30,
+      0,
+      "LATENT"
+    ],
+    [
+      37,
+      25,
+      2,
+      30,
+      1,
+      "VAE"
+    ],
+    [
+      38,
+      30,
+      0,
+      31,
+      0,
+      "IMAGE"
+    ],
+    [
+      39,
+      25,
+      0,
+      3,
+      0,
+      "MODEL"
+    ],
+    [
+      40,
+      3,
+      0,
+      24,
+      0,
+      "MODEL"
+    ],
+    [
+      48,
+      18,
+      0,
+      22,
+      2,
+      "IMAGE"
+    ],
+    [
+      52,
+      19,
+      0,
+      33,
+      0,
+      "IMAGE"
+    ],
+    [
+      53,
+      33,
+      0,
+      18,
+      0,
+      "IMAGE"
+    ],
+    [
+      55,
+      33,
+      1,
+      18,
+      1,
+      "MASK"
+    ]
+  ],
+  "groups": [],
+  "config": {},
+  "extra": {
+    "ds": {
+      "scale": 0.3602952927724854,
+      "offset": [
+        1837.86996008188,
+        -344.9561177558788
+      ]
+    },
+    "frontendVersion": "1.42.15",
+    "VHS_latentpreview": false,
+    "VHS_latentpreviewrate": 0,
+    "VHS_MetadataImage": true,
+    "VHS_KeepIntermediate": true
+  },
+  "version": 0.4
+}
