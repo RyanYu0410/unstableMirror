@@ -37,11 +37,13 @@ const $ = <T extends Element>(sel: string): T => {
 const video = $<HTMLVideoElement>("#video");
 const canvas = $<HTMLCanvasElement>("#canvas");
 const result = $<HTMLImageElement>("#result");
+const mirrorFrame = $<HTMLElement>(".mirror-frame");
 const startBtn = $<HTMLButtonElement>("#start-camera");
 const captureBtn = $<HTMLButtonElement>("#capture");
 const loopToggle = $<HTMLInputElement>("#loop");
 const statusEl = $<HTMLDivElement>("#status");
 const progressEl = $<HTMLSpanElement>("#progress");
+const progressFill = $<HTMLDivElement>("#progress-fill");
 const latencyEl = $<HTMLSpanElement>("#latency");
 const baseUrlInput = $<HTMLInputElement>("#base-url");
 const saveSettingsBtn = $<HTMLButtonElement>("#save-settings");
@@ -107,8 +109,10 @@ async function runOnce(): Promise<void> {
   busy = true;
   captureBtn.disabled = true;
   const started = performance.now();
+  setProgress(0, 0);
 
   try {
+    triggerCaptureFlash();
     const blob = await captureFrame();
     if (!client) client = makeClient();
     setStatus("uploading frame", "busy");
@@ -150,10 +154,22 @@ function makeClient(): ComfyClient {
     baseUrl: settings.baseUrl,
     clientId: newClientId(),
     onProgress: (value, max) => {
-      progressEl.textContent = `${value}/${max}`;
+      setProgress(value, max);
     },
     onError: (msg) => setStatus(msg, "error"),
   });
+}
+
+function triggerCaptureFlash(): void {
+  mirrorFrame.classList.remove("flash");
+  void mirrorFrame.offsetWidth;
+  mirrorFrame.classList.add("flash");
+}
+
+function setProgress(value: number, max: number): void {
+  progressEl.textContent = max > 0 ? `${value}/${max}` : "0/0";
+  const percent = max > 0 ? Math.min(100, Math.max(0, (value / max) * 100)) : 0;
+  progressFill.style.width = `${percent}%`;
 }
 
 async function captureFrame(): Promise<Blob> {
@@ -196,7 +212,10 @@ async function renderResult(url: string): Promise<void> {
   if (lastObjectUrl) URL.revokeObjectURL(lastObjectUrl);
   lastObjectUrl = URL.createObjectURL(blob);
   result.src = lastObjectUrl;
+  result.classList.remove("arrive");
   result.hidden = false;
+  void result.offsetWidth;
+  result.classList.add("arrive");
 }
 
 function setStatus(text: string, kind: "idle" | "busy" | "error"): void {
