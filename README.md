@@ -25,7 +25,49 @@ The browser talks **directly** to ComfyUI on the Studio over the LAN (no relay s
 | `frontend/` | Vite + vanilla TypeScript front-end (camera, upload, prompt, result). |
 | `workflows/Plant_Mirror.ui.json` | Original ComfyUI UI-format workflow (kept for reference / re-editing). |
 | `workflows/plant_mirror.api.json` | API-format workflow used at runtime. **Node 19 has been swapped from `AILab_LoadImage` to a vanilla `LoadImage`** to remove a custom-node dependency on the input side. |
+| `models/loras/ZFCWBK4A0E4E052C66J5CY6T20.safetensors` | The LoRA used by the workflow, bundled here so a fresh backend can be set up offline-ish. |
+| `scripts/setup_backend.sh` | One-shot bootstrap for a brand-new ComfyUI machine (Apple Silicon / CoreML defaults): installs the custom nodes, drops in the LoRA, downloads the SD 1.5 base checkpoint and every IPAdapter / RMBG weight. |
+| `scripts/setup_backend_cuda.sh` | Same as above, but installs `onnxruntime-gpu`, and rewrites the workflow JSONs to `"provider": "CUDA"` so the FaceID node uses NVIDIA. |
 | `scripts/ui_to_api.py` | Helper to regenerate the API JSON from a UI JSON if the graph changes. |
+
+## Quick backend setup (any PC with ComfyUI installed)
+
+If you just want to stand up a fresh ComfyUI backend, the included scripts handle steps 1–2 below for you. Pick the one matching the new machine:
+
+```bash
+# clone ComfyUI somewhere and activate its python env first, then:
+git clone <this repo> unstableMirror
+cd unstableMirror
+
+# Apple Silicon / CoreML (the original Mac Studio path):
+scripts/setup_backend.sh /path/to/ComfyUI
+
+# NVIDIA / CUDA:
+scripts/setup_backend_cuda.sh /path/to/ComfyUI
+
+# (or set COMFYUI_DIR in the environment instead of passing it as $1)
+```
+
+It will:
+
+- `git clone` `ComfyUI-RMBG` and `ComfyUI_IPAdapter_plus` into `ComfyUI/custom_nodes/` and `pip install` their requirements (plus `insightface` + `onnxruntime`, which IPAdapter Plus needs but doesn't list anywhere);
+- copy `models/loras/ZFCWBK4A0E4E052C66J5CY6T20.safetensors` into `ComfyUI/models/loras/`;
+- download `v1-5-pruned-emaonly.safetensors` (~4 GB) into `ComfyUI/models/checkpoints/`;
+- pre-fetch every weight that would otherwise auto-download on the first prompt, so cold-start generation isn't blocked on network I/O:
+  - `ip-adapter-faceid-plusv2_sd15.bin` → `models/ipadapter/`
+  - `ip-adapter-faceid-plusv2_sd15_lora.safetensors` → `models/loras/`
+  - CLIP-ViT-H-14 image encoder → `models/clip_vision/CLIP-ViT-H-14-laion2B-s32B-b79K.safetensors` (renamed on save, as required by IPAdapter's Unified Loader)
+  - InsightFace `buffalo_l` → `models/insightface/models/buffalo_l/` (downloaded as a zip and extracted)
+  - `segformer_clothes` (config + preprocessor + safetensors) → `models/RMBG/segformer_clothes/`
+- print the launch command and the `VITE_COMFY_BASE_URL` you should set on the frontend.
+
+Both scripts are idempotent: every step skips assets that already exist, so re-running after a partial failure (e.g. flaky network on the 4 GB checkpoint) just resumes the missing pieces.
+
+The CUDA script additionally:
+
+- installs `onnxruntime-gpu` instead of `onnxruntime` so InsightFace (used by FaceID) can run on the GPU;
+- rewrites `workflows/plant_mirror.api.json` and `frontend/src/workflow.json` to set the IPAdapter `"provider"` to `"CUDA"`. **You must commit and push those JSON edits**, or pull them on the frontend machine, before rebuilding the frontend — the frontend POSTs whatever's in its bundled `workflow.json` to ComfyUI, and a CoreML backend will fail on a CUDA host.
+- it does **not** install or override PyTorch — make sure ComfyUI's env already has a CUDA-enabled torch (`python -c "import torch; print(torch.cuda.is_available())"` should print `True`).
 
 ## Mac Studio (M1) setup
 
