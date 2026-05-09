@@ -14,6 +14,14 @@ When the backend tunnel is running, any phone, tablet, or laptop can open the pa
 
 The current public frontend is intentionally clean: no visible settings panel, mobile-first controls, queue count, progress feedback, a result preview modal, and a download button.
 
+![Desktop mirror interface](docs/images/frontend-desktop.png)
+
+The desktop view frames the camera as a dark mirror, with the generated result pool sitting beside it. The interface is kept minimal so the participant's body and the returned portrait remain the focus.
+
+![Mobile mirror interface](docs/images/frontend-mobile.png)
+
+The mobile version turns the browser into a full-screen mirror. Controls are large enough for touch, the pool floats above the camera, and the layout respects phone safe areas.
+
 ## The Idea
 
 The mirror is designed to feel like a live ritual instead of a normal image generator. A person stands in front of a camera. The system captures a portrait, isolates the subject, preserves enough identity to keep the image personal, then pushes the face and body into a surreal plant-like transformation.
@@ -153,6 +161,10 @@ The runtime patch is intentionally small:
 - node `31`: read the final generated image from `SaveImage`
 
 The FaceID provider is currently set to `CPU` in the API workflow. This avoids a CoreML ONNX Runtime shape error that appeared during public testing.
+
+![ComfyUI Plant Mirror workflow](docs/images/comfyui-workflow.png)
+
+The ComfyUI graph is the image-making engine behind the mirror. The captured portrait enters on the left, passes through subject segmentation, identity guidance, prompt conditioning, sampling, and decoding, then exits as the final saved portrait on the right.
 
 ## Repository Structure
 
