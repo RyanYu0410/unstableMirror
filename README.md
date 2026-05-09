@@ -22,6 +22,24 @@ The desktop view frames the camera as a dark mirror, with the generated result p
 
 The mobile version turns the browser into a full-screen mirror. Controls are large enough for touch, the pool floats above the camera, and the layout respects phone safe areas.
 
+### Field Test Images
+
+![Source portrait captured in the mirror](docs/images/source-portrait.png)
+
+The live input starts as a normal camera portrait: a person framed by the phone, with all of the contingency of a real moment, expression, light, background, and pose.
+
+![Mobile interface showing generated pool image](docs/images/mobile-live-interface.png)
+
+After generation, the interface keeps the camera view alive while the transformed image appears in the floating pool. The participant can compare the live body and the AI reflection at the same time.
+
+![Enlarged mobile download view](docs/images/mobile-download-preview.png)
+
+Tapping the pool opens the generated portrait as a larger artifact, with a direct download button so the participant can keep the result.
+
+![Final generated portrait closeup](docs/images/final-result-closeup.png)
+
+The final output keeps the face recognizable while shifting the portrait into the project's botanical, uncanny visual language.
+
 ## The Idea
 
 The mirror is designed to feel like a live ritual instead of a normal image generator. A person stands in front of a camera. The system captures a portrait, isolates the subject, preserves enough identity to keep the image personal, then pushes the face and body into a surreal plant-like transformation.
