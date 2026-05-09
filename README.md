@@ -1,156 +1,287 @@
 # unstable mirror
 
-A two-machine interactive portrait system:
+**unstable mirror** is an interactive AI portrait system: a browser becomes a mirror, a camera becomes the input, and a ComfyUI pipeline transforms the person in front of it into a strange botanical reflection.
 
-- **MacBook (Intel)** — runs the browser front-end. Captures from the webcam and displays the generated image.
-- **Mac Studio (M1)** — runs ComfyUI. Performs SD1.5 + LoRA + clothes/subject segmentation + IPAdapter FaceID generation.
+The project began with a simple question: what if a portrait booth did not just take your picture, but returned a version of you that looked alive, unstable, and overgrown? The final system is built as a two-machine workflow: a lightweight front-end device captures and displays the participant, while a stronger generation machine runs the image pipeline.
 
-The browser talks **directly** to ComfyUI on the Studio over the LAN (no relay server). Treat this as a trusted-LAN setup; ComfyUI is not hardened for the public internet.
+## Final Result
 
+Open the public interface:
+
+`https://unstablemirror.pages.dev`
+
+When the backend tunnel is running, any phone, tablet, or laptop can open the page, allow camera access, capture a portrait, wait in the generation queue, and receive a transformed image. The generated result appears in the **pool**. Tap or click it to enlarge it, then download the image.
+
+The current public frontend is intentionally clean: no visible settings panel, mobile-first controls, queue count, progress feedback, a result preview modal, and a download button.
+
+## The Idea
+
+The mirror is designed to feel like a live ritual instead of a normal image generator. A person stands in front of a camera. The system captures a portrait, isolates the subject, preserves enough identity to keep the image personal, then pushes the face and body into a surreal plant-like transformation.
+
+The visual language is:
+
+- botanical growth
+- mushrooms and translucent organic structures
+- flowers merging with skin
+- face identity preserved through IPAdapter FaceID
+- a dark mirror interface with a small generated-image pool
+- real-time or semi-real-time pacing, depending on generation speed
+
+## System At A Glance
+
+```mermaid
+flowchart LR
+  participant["Participant"]
+  browser["Browser Mirror UI"]
+  tunnel["Cloudflare Tunnel optional"]
+  comfy["ComfyUI Backend"]
+  workflow["Plant Mirror Workflow"]
+  result["Generated Portrait"]
+
+  participant -->|"camera image"| browser
+  browser -->|"upload frame"| tunnel
+  tunnel --> comfy
+  comfy --> workflow
+  workflow -->|"SD1.5, LoRA, segmentation, FaceID"| result
+  result -->|"image URL"| tunnel
+  tunnel --> browser
+  browser -->|"preview and download"| participant
 ```
-┌──────────── MacBook ────────────┐          ┌──────────── Mac Studio ────────────┐
-│  Browser (Vite dev server)      │  HTTP    │  ComfyUI (port 8188)               │
-│  - getUserMedia + canvas        │ ───────▶ │  - SD 1.5 + LoRA                   │
-│  - upload PNG to /upload/image  │   WS     │  - ClothesSegment (RMBG)           │
-│  - patch + POST /prompt         │ ◀─────── │  - IPAdapter FaceID Plus V2        │
-│  - watch /ws progress           │          │  - SaveImage (output)              │
-│  - GET /history + /view → <img> │          │                                    │
-└─────────────────────────────────┘          └────────────────────────────────────┘
+
+For local installation use, the browser can talk directly to the ComfyUI server over LAN. For public demos, Cloudflare Pages hosts the frontend and Cloudflare Tunnel temporarily exposes the ComfyUI backend over HTTPS.
+
+## Interaction Flow
+
+```mermaid
+sequenceDiagram
+  participant User
+  participant Frontend
+  participant ComfyUI
+  participant Workflow
+
+  User->>Frontend: Open mirror page
+  User->>Frontend: Allow camera
+  User->>Frontend: Tap capture and generate
+  Frontend->>Frontend: Crop frame to 512x768
+  Frontend->>ComfyUI: POST /upload/image
+  Frontend->>ComfyUI: POST /prompt
+  ComfyUI->>Frontend: WebSocket status and progress
+  ComfyUI->>Workflow: Run Plant Mirror graph
+  Workflow->>ComfyUI: Save final image
+  Frontend->>ComfyUI: GET /history and /view
+  Frontend->>User: Show final generated portrait
 ```
 
-## Repo layout
+## Visual Storyboard
 
-| Path | Purpose |
-|------|--------|
-| `frontend/` | Vite + vanilla TypeScript front-end (camera, upload, prompt, result). |
-| `workflows/Plant_Mirror.ui.json` | Original ComfyUI UI-format workflow (kept for reference / re-editing). |
-| `workflows/plant_mirror.api.json` | API-format workflow used at runtime. **Node 19 has been swapped from `AILab_LoadImage` to a vanilla `LoadImage`** to remove a custom-node dependency on the input side. |
-| `models/loras/ZFCWBK4A0E4E052C66J5CY6T20.safetensors` | The LoRA used by the workflow, bundled here so a fresh backend can be set up offline-ish. |
-| `scripts/setup_backend.sh` | One-shot bootstrap for a brand-new ComfyUI machine (Apple Silicon / CoreML defaults): installs the custom nodes, drops in the LoRA, downloads the SD 1.5 base checkpoint and every IPAdapter / RMBG weight. |
-| `scripts/setup_backend_cuda.sh` | Same as above, but installs `onnxruntime-gpu`, and rewrites the workflow JSONs to `"provider": "CUDA"` so the FaceID node uses NVIDIA. |
-| `scripts/ui_to_api.py` | Helper to regenerate the API JSON from a UI JSON if the graph changes. |
+```text
+1. The Mirror
+   A full-screen camera view fills the browser. The participant sees themselves
+   framed by a dark glass interface.
 
-## Quick backend setup (any PC with ComfyUI installed)
+2. The Capture
+   A flash confirms the portrait was taken. The frontend crops the image into a
+   portrait ratio for the ComfyUI graph.
 
-If you just want to stand up a fresh ComfyUI backend, the included scripts handle steps 1–2 below for you. Pick the one matching the new machine:
+3. The Waiting Pool
+   The UI shows progress and queue depth while ComfyUI runs the generation.
+
+4. The Return
+   The final portrait appears in a small pool beside or above the mirror.
+
+5. The Artifact
+   The participant taps the pool, enlarges the image, and downloads the result.
+```
+
+## How It Developed
+
+The first version was only the technical bridge: camera capture in the browser, image upload to ComfyUI, and a return path for the generated image. The MacBook acted as the camera/display device and the Mac Studio handled generation.
+
+The next challenge was making the ComfyUI graph reliable through the API. The original `Plant_Mirror.json` was a UI workflow, so it had to be converted into API format. The live camera frame is injected into node `19`, which was simplified to a standard `LoadImage` node. The final output is pulled from node `31`, the `SaveImage` node, so the frontend does not accidentally show an intermediate segmentation preview.
+
+The interface then became more like an installation piece. The camera view became a mirror. The result moved into a separate pool. Progress, queue depth, mobile layout, a preview modal, and download behavior were added so the system could work for participants on many devices.
+
+Finally, the project was deployed publicly. Cloudflare Pages hosts the frontend. A temporary Cloudflare Tunnel can expose the ComfyUI backend when the Mac Studio is running. This makes the mirror accessible from anywhere while keeping the heavy AI process on the local machine.
+
+## Architecture
+
+```mermaid
+flowchart TB
+  subgraph frontend["Frontend Browser"]
+    camera["getUserMedia camera"]
+    canvas["Canvas crop 512x768"]
+    client["ComfyUI API client"]
+    ui["Mirror UI, pool, preview, download"]
+  end
+
+  subgraph backend["Mac Studio / ComfyUI"]
+    upload["/upload/image"]
+    prompt["/prompt"]
+    ws["/ws progress and queue"]
+    history["/history and /view"]
+    graph["Plant Mirror API workflow"]
+  end
+
+  camera --> canvas
+  canvas --> client
+  client --> upload
+  client --> prompt
+  ws --> ui
+  prompt --> graph
+  graph --> history
+  history --> ui
+```
+
+## ComfyUI Workflow
+
+The workflow uses:
+
+- `CheckpointLoaderSimple` with `v1-5-pruned-emaonly.safetensors`
+- `LoraLoaderModelOnly` with `ZFCWBK4A0E4E052C66J5CY6T20.safetensors`
+- `ClothesSegment` from `ComfyUI-RMBG`
+- `AILab_Preview` from `ComfyUI-RMBG`
+- `IPAdapterUnifiedLoaderFaceID`
+- `IPAdapterAdvanced`
+- `KSampler`
+- `VAEDecode`
+- `SaveImage`
+
+The runtime patch is intentionally small:
+
+- node `19`: replace `inputs.image` with the freshly uploaded camera frame
+- node `29`: randomize `inputs.seed`
+- node `31`: read the final generated image from `SaveImage`
+
+The FaceID provider is currently set to `CPU` in the API workflow. This avoids a CoreML ONNX Runtime shape error that appeared during public testing.
+
+## Repository Structure
+
+```text
+unstableMirror/
+  frontend/
+    index.html
+    src/
+      main.ts
+      comfy.ts
+      style.css
+      workflow.json
+  workflows/
+    Plant_Mirror.ui.json
+    plant_mirror.api.json
+  scripts/
+    setup_backend.sh
+    setup_backend_cuda.sh
+    ui_to_api.py
+  models/
+    loras/
+      ZFCWBK4A0E4E052C66J5CY6T20.safetensors
+```
+
+## Frontend Features
+
+- Vite + vanilla TypeScript
+- responsive desktop and mobile layouts
+- full-screen mobile camera mode
+- safe-area support for phones with notches and home indicators
+- queue depth display from ComfyUI WebSocket status
+- generation progress bar
+- single-flight loop mode so the frontend does not spam the ComfyUI queue
+- result pool
+- tap/click to enlarge generated images
+- download button for the latest result
+- hidden settings panel for a cleaner public installation UI
+
+## Public Demo Mode
+
+The deployed page is:
+
+`https://unstablemirror.pages.dev`
+
+The frontend only works as a public AI mirror when the backend is reachable. During a demo, start ComfyUI on the Mac Studio and expose it with a Cloudflare Tunnel.
 
 ```bash
-# clone ComfyUI somewhere and activate its python env first, then:
-git clone <this repo> unstableMirror
-cd unstableMirror
-
-# Apple Silicon / CoreML (the original Mac Studio path):
-scripts/setup_backend.sh /path/to/ComfyUI
-
-# NVIDIA / CUDA:
-scripts/setup_backend_cuda.sh /path/to/ComfyUI
-
-# (or set COMFYUI_DIR in the environment instead of passing it as $1)
+cloudflared tunnel --url http://127.0.0.1:8188 --no-autoupdate
 ```
 
-It will:
+Then rebuild/deploy the frontend with the generated tunnel URL:
 
-- `git clone` `ComfyUI-RMBG` and `ComfyUI_IPAdapter_plus` into `ComfyUI/custom_nodes/` and `pip install` their requirements (plus `insightface` + `onnxruntime`, which IPAdapter Plus needs but doesn't list anywhere);
-- copy `models/loras/ZFCWBK4A0E4E052C66J5CY6T20.safetensors` into `ComfyUI/models/loras/`;
-- download `v1-5-pruned-emaonly.safetensors` (~4 GB) into `ComfyUI/models/checkpoints/`;
-- pre-fetch every weight that would otherwise auto-download on the first prompt, so cold-start generation isn't blocked on network I/O:
-  - `ip-adapter-faceid-plusv2_sd15.bin` → `models/ipadapter/`
-  - `ip-adapter-faceid-plusv2_sd15_lora.safetensors` → `models/loras/`
-  - CLIP-ViT-H-14 image encoder → `models/clip_vision/CLIP-ViT-H-14-laion2B-s32B-b79K.safetensors` (renamed on save, as required by IPAdapter's Unified Loader)
-  - InsightFace `buffalo_l` → `models/insightface/models/buffalo_l/` (downloaded as a zip and extracted)
-  - `segformer_clothes` (config + preprocessor + safetensors) → `models/RMBG/segformer_clothes/`
-- print the launch command and the `VITE_COMFY_BASE_URL` you should set on the frontend.
+```bash
+cd frontend
+VITE_COMFY_BASE_URL=https://YOUR-TUNNEL.trycloudflare.com npm run build
+npx wrangler pages deploy dist --project-name unstablemirror --branch main
+```
 
-Both scripts are idempotent: every step skips assets that already exist, so re-running after a partial failure (e.g. flaky network on the 4 GB checkpoint) just resumes the missing pieces.
+Temporary tunnel URLs stop working when `cloudflared` stops. The Pages site can remain online, but generation will fail until a backend tunnel is running again.
 
-The CUDA script additionally:
+## Local Mac Studio Backend
 
-- installs `onnxruntime-gpu` instead of `onnxruntime` so InsightFace (used by FaceID) can run on the GPU;
-- rewrites `workflows/plant_mirror.api.json` and `frontend/src/workflow.json` to set the IPAdapter `"provider"` to `"CUDA"`. **You must commit and push those JSON edits**, or pull them on the frontend machine, before rebuilding the frontend — the frontend POSTs whatever's in its bundled `workflow.json` to ComfyUI, and a CoreML backend will fail on a CUDA host.
-- it does **not** install or override PyTorch — make sure ComfyUI's env already has a CUDA-enabled torch (`python -c "import torch; print(torch.cuda.is_available())"` should print `True`).
-
-## Mac Studio (M1) setup
-
-### 1. ComfyUI custom nodes
-
-This workflow needs the following custom nodes installed in `ComfyUI/custom_nodes/`:
-
-- [`ComfyUI-RMBG`](https://github.com/1038lab/ComfyUI-RMBG) — provides `ClothesSegment`, `AILab_Preview` (and the original `AILab_LoadImage`, which we no longer use).
-- [`ComfyUI_IPAdapter_plus`](https://github.com/cubiq/ComfyUI_IPAdapter_plus) — provides `IPAdapterAdvanced` and `IPAdapterUnifiedLoaderFaceID`.
-
-### 2. Models
-
-Place these in the standard ComfyUI model folders:
-
-- `models/checkpoints/v1-5-pruned-emaonly.safetensors`
-- `models/loras/ZFCWBK4A0E4E052C66J5CY6T20.safetensors` (your LoRA)
-- IPAdapter Plus pulls FaceID Plus v2 weights and CLIP Vision automatically the first time it runs (or follow the IPAdapter Plus README to place them by hand).
-- ClothesSegment pulls `segformer_clothes` automatically (or place at `models/RMBG/segformer_clothes/` per the RMBG README).
-
-### 3. Launch ComfyUI with CORS enabled and bound to the LAN
-
-For the normal MacBook workflow, open the front-end at `http://localhost:5173` so
-the browser exposes webcam access. That makes the browser origin `http://localhost:5173`:
+The Mac Studio runs ComfyUI and exposes the API:
 
 ```bash
 cd /path/to/ComfyUI
 python main.py \
   --listen 0.0.0.0 \
   --port 8188 \
-  --enable-cors-header "http://localhost:5173"
+  --enable-cors-header "*"
 ```
 
-- `--listen 0.0.0.0` makes ComfyUI reachable from the MacBook.
-- `--enable-cors-header <origin>` is required so the browser is allowed to call `/upload/image`, `/prompt`, `/view`, and the `/ws` WebSocket cross-origin. Some ComfyUI versions accept `*` here; pinning to the browser origin is safer. If you serve the front-end over HTTPS or open it from another device, use that exact page origin instead.
-- macOS will likely prompt to allow incoming connections the first time — accept.
-
-### 4. Confirm reachability from the MacBook
-
-From the MacBook terminal:
+For the ComfyUI Desktop app on macOS, the working launch can look like this:
 
 ```bash
-curl http://STUDIO-IP:8188/system_stats
+cd /Applications/ComfyUI.app/Contents/Resources/ComfyUI
+/Users/yhr/Documents/ComfyUI/.venv/bin/python main.py \
+  --listen 0.0.0.0 \
+  --port 8188 \
+  --enable-cors-header "*" \
+  --base-directory /Users/yhr/Documents/ComfyUI \
+  --user-directory /Users/yhr/Documents/ComfyUI/user \
+  --input-directory /Users/yhr/Documents/ComfyUI/input \
+  --output-directory /Users/yhr/Documents/ComfyUI/output \
+  --temp-directory /Users/yhr/Documents/ComfyUI/temp \
+  --front-end-root /Applications/ComfyUI.app/Contents/Resources/ComfyUI/web_custom_versions/desktop_app \
+  --disable-auto-launch
 ```
 
-If that returns JSON, you're good.
+Confirm it is reachable:
 
-## MacBook setup
+```bash
+curl http://127.0.0.1:8188/system_stats
+```
+
+## Fresh Backend Setup
+
+If setting up a new ComfyUI machine, use one of the setup scripts after cloning this repo and activating the ComfyUI Python environment:
+
+```bash
+# Apple Silicon / CPU / CoreML-oriented setup
+scripts/setup_backend.sh /path/to/ComfyUI
+
+# NVIDIA / CUDA setup
+scripts/setup_backend_cuda.sh /path/to/ComfyUI
+```
+
+The scripts install the required custom nodes, copy the LoRA into place, and download the checkpoint/IPAdapter/RMBG/InsightFace assets needed by the graph.
+
+## Frontend Development
 
 ```bash
 cd frontend
-cp .env.example .env
-# edit .env: set VITE_COMFY_BASE_URL=http://STUDIO-IP:8188
 npm install
-npm run dev -- --host
+VITE_COMFY_BASE_URL=http://127.0.0.1:8188 npm run dev -- --host
 ```
 
-Open `http://localhost:5173` on the MacBook. Browsers only expose webcam APIs to
-secure contexts; `localhost` is treated as secure, but a plain `http://192.168.x.y:5173`
-LAN URL is not.
+For local webcam use, open the frontend at:
 
-In the page:
+`http://localhost:5173`
 
-1. Click **start camera** — grant webcam permission.
-2. Click **capture & generate** for one round-trip, or check **loop** for semi-real-time continuous generation (single-flight: it never queues more than one prompt at a time).
-3. Use the **settings** disclosure at the bottom to point at a different ComfyUI URL without rebuilding.
+Browsers treat `localhost` as a secure context, so camera access works. Plain LAN HTTP addresses may not expose webcam APIs on mobile browsers.
 
-The frontend center-crops each capture to **512×768** before upload to match the latent shape and the IPAdapter input size.
+## Updating The Workflow
 
-## Updating the workflow
+If the ComfyUI graph changes:
 
-If you re-edit `Plant_Mirror.ui.json` in ComfyUI, regenerate the API JSON one of two ways:
-
-**Option A — let ComfyUI export it (recommended):**
-
-1. Settings → enable **Dev Mode**.
-2. Click **Save (API Format)** in ComfyUI; save over `workflows/plant_mirror.api.json`.
-3. Re-apply the LoadImage swap if you want to keep that simplification — the entry for node 19 should look like:
-   ```json
-   "19": { "class_type": "LoadImage", "inputs": { "image": "input.png" } }
-   ```
-4. Copy `workflows/plant_mirror.api.json` over `frontend/src/workflow.json` (the front-end imports the bundled copy).
-
-**Option B — use the helper script:**
+1. Save the editable UI workflow as `workflows/Plant_Mirror.ui.json`.
+2. Export API format from ComfyUI, or run:
 
 ```bash
 python scripts/ui_to_api.py \
@@ -160,26 +291,25 @@ python scripts/ui_to_api.py \
 cp workflows/plant_mirror.api.json frontend/src/workflow.json
 ```
 
-The script only knows the widget→input-name mapping for the nodes used by this graph (see `WIDGET_INPUT_NAMES` in the script). If you add a new node type, extend that table or just use Option A.
-
-## Runtime contract
-
-The browser only patches two things in the workflow per request:
-
-- `nodes["19"].inputs.image` — set to the filename returned by `/upload/image`.
-- `nodes["29"].inputs.seed` — randomized per call to avoid identical outputs.
-
-Everything else (LoRA name, prompts, IPAdapter weights, sampler/cfg/steps, latent size, save filename prefix) stays static in `plant_mirror.api.json`. Edit those values directly in that file (or in ComfyUI and re-export) — no front-end change required.
+3. Verify that node `19` is `LoadImage`.
+4. Verify that node `31` is the final `SaveImage` output.
+5. Rebuild and redeploy the frontend.
 
 ## Troubleshooting
 
-- **CORS errors in the browser console.** Restart ComfyUI with the right `--enable-cors-header` value. Browsers also block requests if the front-end is `https://` and ComfyUI is `http://` (mixed content) — keep both `http://`.
-- **`node_errors` in the prompt response mentioning `ClothesSegment`.** Your installed RMBG version's input names differ from the ones we hard-coded. Re-export via Option A above; it will produce the exact names your server expects.
-- **`IPAdapterUnifiedLoaderFaceID` error: provider unavailable.** Make sure CoreML is available on your Studio (it is on M-series macs by default with `onnxruntime-coreml`). Otherwise change `provider` in `plant_mirror.api.json` to `"CPU"` or `"CUDA"` as appropriate.
-- **Stuck on "queueing prompt".** The Studio may already be busy (other ComfyUI tab open, OOM, etc.). Check the ComfyUI terminal log on the Studio.
-- **`LoadImage` cannot find the file.** Confirm `/upload/image` returned `{"name": "...", "subfolder": "", "type": "input"}` and that we use that exact `name`. Subfolders aren't used here.
-- **Looping generates much faster than expected ⇒ identical outputs.** That means seed isn't being randomized — confirm node 29 in the API JSON has class `KSampler` and an `inputs.seed` field.
+- **The frontend loads but generation fails:** the ComfyUI backend or Cloudflare Tunnel is not running.
+- **Camera is unavailable:** open the app over HTTPS or `localhost`; browsers restrict camera access on insecure origins.
+- **Only a cutout/segmentation image appears:** make sure the frontend reads output images from node `31`, not the first history output.
+- **CoreML ONNX Runtime shape error:** use `"provider": "CPU"` for `IPAdapterUnifiedLoaderFaceID`.
+- **Queue never moves:** ComfyUI may be busy, crashed, or blocked by a model download.
+- **CORS errors:** start ComfyUI with `--enable-cors-header "*"`, or use the exact frontend origin.
+
+## Final Reflection
+
+The project started as an experiment in connecting a live camera to a local AI image generator. It became a small installation system: part mirror, part portrait booth, part generative ritual. The most important shift was treating the frontend not as a control panel, but as the artwork's surface. The controls became minimal. The settings disappeared. The generated image became something you retrieve from a pool.
+
+The final result is a portable interactive portrait system that can run locally between two machines or be opened publicly through Cloudflare, while still keeping the heaviest AI work on the Mac Studio.
 
 ## License
 
-All yours; no license declared.
+No license declared.
