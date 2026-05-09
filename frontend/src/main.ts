@@ -44,6 +44,7 @@ const loopToggle = $<HTMLInputElement>("#loop");
 const statusEl = $<HTMLDivElement>("#status");
 const progressEl = $<HTMLSpanElement>("#progress");
 const progressFill = $<HTMLDivElement>("#progress-fill");
+const queueEl = $<HTMLSpanElement>("#queue");
 const latencyEl = $<HTMLSpanElement>("#latency");
 const baseUrlInput = $<HTMLInputElement>("#base-url");
 const saveSettingsBtn = $<HTMLButtonElement>("#save-settings");
@@ -156,6 +157,9 @@ function makeClient(): ComfyClient {
     onProgress: (value, max) => {
       setProgress(value, max);
     },
+    onStatus: (queueRemaining) => {
+      setQueueRemaining(queueRemaining);
+    },
     onError: (msg) => setStatus(msg, "error"),
   });
 }
@@ -170,6 +174,10 @@ function setProgress(value: number, max: number): void {
   progressEl.textContent = max > 0 ? `${value}/${max}` : "0/0";
   const percent = max > 0 ? Math.min(100, Math.max(0, (value / max) * 100)) : 0;
   progressFill.style.width = `${percent}%`;
+}
+
+function setQueueRemaining(queueRemaining: number): void {
+  queueEl.textContent = `queue: ${queueRemaining}`;
 }
 
 async function captureFrame(): Promise<Blob> {

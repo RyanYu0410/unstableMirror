@@ -231,6 +231,10 @@ button:disabled {
   transition: width 180ms ease-out;
 }
 
+.queue {
+  white-space: nowrap;
+}
+
 .result-pool {
   position: relative;
   width: clamp(11rem, 22vw, 21rem);
