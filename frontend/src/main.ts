@@ -24,10 +24,6 @@ function loadSettings(): Settings {
   return { baseUrl: env.VITE_COMFY_BASE_URL ?? "http://studio.local:8188" };
 }
 
-function saveSettings(s: Settings): void {
-  localStorage.setItem(SETTINGS_KEY, JSON.stringify(s));
-}
-
 const $ = <T extends Element>(sel: string): T => {
   const el = document.querySelector<T>(sel);
   if (!el) throw new Error(`missing element ${sel}`);
@@ -52,8 +48,6 @@ const progressEl = $<HTMLSpanElement>("#progress");
 const progressFill = $<HTMLDivElement>("#progress-fill");
 const queueEl = $<HTMLSpanElement>("#queue");
 const latencyEl = $<HTMLSpanElement>("#latency");
-const baseUrlInput = $<HTMLInputElement>("#base-url");
-const saveSettingsBtn = $<HTMLButtonElement>("#save-settings");
 
 let settings = loadSettings();
 let stream: MediaStream | null = null;
@@ -61,15 +55,6 @@ let busy = false;
 let lastObjectUrl: string | null = null;
 let lastResultBlob: Blob | null = null;
 let client: ComfyClient | null = null;
-
-baseUrlInput.value = settings.baseUrl;
-
-saveSettingsBtn.addEventListener("click", () => {
-  settings = { baseUrl: baseUrlInput.value.trim() };
-  saveSettings(settings);
-  client = null;
-  setStatus("settings saved", "idle");
-});
 
 startBtn.addEventListener("click", async () => {
   try {
