@@ -41,10 +41,23 @@
 
       <aside class="result-pool" aria-label="generated image pool">
         <div class="pool-label">pool</div>
-        <img id="result" alt="generated portrait" hidden />
+        <button class="result-hitbox" id="open-result" type="button" aria-label="enlarge generated portrait" disabled>
+          <img id="result" alt="generated portrait" hidden />
+        </button>
         <div class="pool-placeholder" aria-hidden="true">waiting for reflection</div>
       </aside>
     </main>
+
+    <div class="lightbox" id="lightbox" hidden aria-modal="true" role="dialog" aria-label="generated portrait preview">
+      <button class="lightbox-backdrop" id="close-lightbox-backdrop" type="button" aria-label="close preview"></button>
+      <div class="lightbox-panel">
+        <img id="lightbox-image" alt="enlarged generated portrait" />
+        <div class="chrome lightbox-actions">
+          <button id="download-result" type="button">download</button>
+          <button id="close-lightbox" type="button">close</button>
+        </div>
+      </div>
+    </div>
 
     <details class="chrome settings">
       <summary>settings</summary>

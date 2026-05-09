@@ -37,6 +37,12 @@ const $ = <T extends Element>(sel: string): T => {
 const video = $<HTMLVideoElement>("#video");
 const canvas = $<HTMLCanvasElement>("#canvas");
 const result = $<HTMLImageElement>("#result");
+const openResultBtn = $<HTMLButtonElement>("#open-result");
+const lightbox = $<HTMLDivElement>("#lightbox");
+const lightboxImage = $<HTMLImageElement>("#lightbox-image");
+const closeLightboxBtn = $<HTMLButtonElement>("#close-lightbox");
+const closeLightboxBackdrop = $<HTMLButtonElement>("#close-lightbox-backdrop");
+const downloadResultBtn = $<HTMLButtonElement>("#download-result");
 const mirrorFrame = $<HTMLElement>(".mirror-frame");
 const startBtn = $<HTMLButtonElement>("#start-camera");
 const captureBtn = $<HTMLButtonElement>("#capture");
@@ -53,6 +59,7 @@ let settings = loadSettings();
 let stream: MediaStream | null = null;
 let busy = false;
 let lastObjectUrl: string | null = null;
+let lastResultBlob: Blob | null = null;
 let client: ComfyClient | null = null;
 
 baseUrlInput.value = settings.baseUrl;
@@ -99,6 +106,26 @@ captureBtn.addEventListener("click", () => {
 
 loopToggle.addEventListener("change", () => {
   if (loopToggle.checked && !busy) void runOnce();
+});
+
+openResultBtn.addEventListener("click", () => {
+  openLightbox();
+});
+
+closeLightboxBtn.addEventListener("click", () => {
+  closeLightbox();
+});
+
+closeLightboxBackdrop.addEventListener("click", () => {
+  closeLightbox();
+});
+
+downloadResultBtn.addEventListener("click", () => {
+  downloadLatestResult();
+});
+
+window.addEventListener("keydown", (ev) => {
+  if (ev.key === "Escape" && !lightbox.hidden) closeLightbox();
 });
 
 async function runOnce(): Promise<void> {
@@ -218,12 +245,39 @@ async function renderResult(url: string): Promise<void> {
   if (!res.ok) throw new Error(`view failed: ${res.status}`);
   const blob = await res.blob();
   if (lastObjectUrl) URL.revokeObjectURL(lastObjectUrl);
+  lastResultBlob = blob;
   lastObjectUrl = URL.createObjectURL(blob);
   result.src = lastObjectUrl;
+  lightboxImage.src = lastObjectUrl;
+  openResultBtn.disabled = false;
   result.classList.remove("arrive");
   result.hidden = false;
   void result.offsetWidth;
   result.classList.add("arrive");
+}
+
+function openLightbox(): void {
+  if (!lastObjectUrl) return;
+  lightboxImage.src = lastObjectUrl;
+  lightbox.hidden = false;
+  downloadResultBtn.focus();
+}
+
+function closeLightbox(): void {
+  lightbox.hidden = true;
+  openResultBtn.focus();
+}
+
+function downloadLatestResult(): void {
+  if (!lastResultBlob) return;
+  const url = URL.createObjectURL(lastResultBlob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `unstable-mirror-${new Date().toISOString().replace(/[:.]/g, "-")}.png`;
+  document.body.append(a);
+  a.click();
+  a.remove();
+  window.setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 
 function setStatus(text: string, kind: "idle" | "busy" | "error"): void {
