@@ -119,7 +119,7 @@ flowchart TB
     prompt["/prompt"]
     ws["/ws progress and queue"]
     history["/history and /view"]
-    graph["Plant Mirror API workflow"]
+    workflowGraph["Plant Mirror API workflow"]
   end
 
   camera --> canvas
@@ -127,8 +127,8 @@ flowchart TB
   client --> upload
   client --> prompt
   ws --> ui
-  prompt --> graph
-  graph --> history
+  prompt --> workflowGraph
+  workflowGraph --> history
   history --> ui
 ```
 
